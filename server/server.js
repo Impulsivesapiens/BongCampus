@@ -1,8 +1,9 @@
 require("dotenv").config();
+require("express-async-errors");
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-require("express-async-errors");
+const mongoSanitize = require("express-mongo-sanitize");
 
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/auth-routes");
@@ -17,6 +18,7 @@ app.use(cors({
   credentials: true,
 }));
 app.use(express.json());
+app.use(mongoSanitize());
 app.use(cookieParser());
 
 app.use("/auth", authRoutes);
