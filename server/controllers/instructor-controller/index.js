@@ -240,6 +240,26 @@ const getUploadSignature = async (req, res) => {
   });
 };
 
+const deleteStagedUpload = async (req, res) => {
+  const { public_id, resource_type } = req.body;
+
+  if (!public_id) {
+    return res.status(400).json({
+      success: false,
+      message: "public_id is required",
+    });
+  }
+
+  await cloudinary.uploader.destroy(public_id, {
+    resource_type: resource_type || "video",
+  });
+
+  return res.status(200).json({
+    success: true,
+    message: "Upload deleted successfully",
+  });
+};
+
 module.exports = {
   getInstructorCourses,
   createCourse,
@@ -249,4 +269,5 @@ module.exports = {
   addLecture,
   deleteLecture,
   getUploadSignature,
+  deleteStagesUpload,
 };
