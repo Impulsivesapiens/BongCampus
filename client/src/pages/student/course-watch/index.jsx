@@ -143,11 +143,11 @@ export default function CourseWatchPage() {
         {/* Top bar */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
           <button
-            onClick={() => navigate(`/student/courses/${id}`)}
+            onClick={() => navigate(`/student/courses/purchased`)}
             className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ChevronLeft size={14} />
-            Back to details
+            Back to courses
           </button>
 
           <button

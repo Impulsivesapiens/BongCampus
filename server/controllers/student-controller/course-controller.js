@@ -74,7 +74,7 @@ const getCourseAccess = async (req, res) => {
     });
   }
 
-  const course = await Course.findById(courseId);
+  const course = await Course.findById(courseId, {students: 0});
 
   if (!course) {
     return res.status(404).json({

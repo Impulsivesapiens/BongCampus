@@ -19,6 +19,7 @@ const CourseSchema = new mongoose.Schema(
     },
     primaryLanguage: { type: String },
     thumbnail: { type: String },
+    thumbnail_public_id: { type: String },
     pricing: { type: Number, required: true },
     objectives: { type: String },
     welcomeMessage: { type: String },

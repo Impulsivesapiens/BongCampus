@@ -6,7 +6,6 @@ import AppLayout from "./components/common/app-layout";
 import AuthPage from "./pages/auth";
 import LandingPage from "./pages/landing";
 import StudentHome from "./pages/student/home";
-import StudentCourses from "./pages/student/courses";
 import CourseDetails from "./pages/student/course-details";
 import PaymentPage from "./pages/student/payment";
 import PurchasedCourses from "./pages/student/purchased-courses";
@@ -33,11 +32,6 @@ function App() {
           <Route path="/student/home" element={
             <ProtectedRoute><RoleRoute allowedRole="user">
               <AppLayout><StudentHome /></AppLayout>
-            </RoleRoute></ProtectedRoute>
-          } />
-          <Route path="/student/courses" element={
-            <ProtectedRoute><RoleRoute allowedRole="user">
-              <AppLayout><StudentCourses /></AppLayout>
             </RoleRoute></ProtectedRoute>
           } />
           <Route path="/student/courses/purchased" element={
