@@ -5,12 +5,29 @@ const StudentCourses = require("../../models/StudentCourses");
 const getInstructorCourses = async (req, res) => {
   const instructorId = req.user.id;
 
-  const courses = await Course.find({ instructorId }, { students: 0 });
+  const courses = await Course.find(
+    { instructorId },
+    { "students.studentEmail": 0, "students.paidAmount": 0 }
+  );
 
-  return res.status(200).json({
-    success: true,
-    data: courses,
-  });
+  return res.status(200).json({ success: true, data: courses });
+};
+
+// controller
+const getInstructorCourse = async (req, res) => {
+  const courseId = req.params.id;
+  const instructorId = req.user.id;
+
+  const course = await Course.findOne({ _id: courseId, instructorId });
+
+  if (!course) {
+    return res.status(404).json({
+      success: false,
+      message: "Course not found or unauthorized",
+    });
+  }
+
+  return res.status(200).json({ success: true, data: course });
 };
 
 const createCourse = async (req, res) => {
@@ -26,6 +43,7 @@ const createCourse = async (req, res) => {
     pricing,
     objectives,
     welcomeMessage,
+    curriculum,
   } = req.body;
 
   const newCourse = new Course({
@@ -35,24 +53,28 @@ const createCourse = async (req, res) => {
     category,
     level,
     primaryLanguage,
-    thumbnail,
-    thumbnail_public_id,
+    thumbnail: thumbnail ?? "",
+    thumbnail_public_id: thumbnail_public_id ?? "",
     pricing,
     objectives,
     welcomeMessage,
     instructorId: req.user.id,
     instructorName: req.user.userName,
     isPublished: false,
-    curriculum: [],
+    curriculum: Array.isArray(curriculum)
+      ? curriculum.map((l) => ({
+          title: l.title,
+          videoUrl: l.videoUrl,
+          public_id: l.public_id,
+          freePreview: l.freePreview ?? false,
+        }))
+      : [],
     students: [],
   });
 
   await newCourse.save();
 
-  return res.status(201).json({
-    success: true,
-    data: newCourse,
-  });
+  return res.status(201).json({ success: true, data: newCourse });
 };
 
 const updateCourse = async (req, res) => {
@@ -68,7 +90,7 @@ const updateCourse = async (req, res) => {
     });
   }
 
-  // delete old thumbnail from cloudinary if a new one is being uploaded
+  // delete old thumbnail only if a new one is being sent
   if (req.body.thumbnail && course.thumbnail_public_id) {
     await cloudinary.uploader.destroy(course.thumbnail_public_id);
   }
@@ -88,17 +110,25 @@ const updateCourse = async (req, res) => {
   ];
 
   allowedFields.forEach((field) => {
-    if (req.body[field] !== undefined) {
-      course[field] = req.body[field];
-    }
+    if (req.body[field] !== undefined) course[field] = req.body[field];
   });
+
+  // full replace curriculum if provided
+  // frontend has already handled all Cloudinary cleanup before calling this
+  if (Array.isArray(req.body.curriculum)) {
+    course.curriculum = req.body.curriculum.map((l) => ({
+      // preserve _id for existing lectures so student progress refs don't break
+      ...(l._id ? { _id: l._id } : {}),
+      title: l.title,
+      videoUrl: l.videoUrl,
+      public_id: l.public_id,
+      freePreview: l.freePreview ?? false,
+    }));
+  }
 
   await course.save();
 
-  return res.status(200).json({
-    success: true,
-    data: course,
-  });
+  return res.status(200).json({ success: true, data: course });
 };
 
 const deleteCourse = async (req, res) => {
@@ -115,9 +145,9 @@ const deleteCourse = async (req, res) => {
   }
 
   const deletePromises = course.curriculum
-    .filter((lecture) => lecture.public_id)
-    .map((lecture) =>
-      cloudinary.uploader.destroy(lecture.public_id, { resource_type: "video" })
+    .filter((l) => l.public_id)
+    .map((l) =>
+      cloudinary.uploader.destroy(l.public_id, { resource_type: "video" })
     );
 
   if (course.thumbnail_public_id) {
@@ -161,6 +191,7 @@ const togglePublish = async (req, res) => {
   });
 };
 
+// kept for backwards compatibility — not called by the new editor
 const addLecture = async (req, res) => {
   const courseId = req.params.id;
   const instructorId = req.user.id;
@@ -178,10 +209,7 @@ const addLecture = async (req, res) => {
   course.curriculum.push({ title, videoUrl, public_id, freePreview });
   await course.save();
 
-  return res.status(201).json({
-    success: true,
-    data: course.curriculum,
-  });
+  return res.status(201).json({ success: true, data: course.curriculum });
 };
 
 const deleteLecture = async (req, res) => {
@@ -215,10 +243,7 @@ const deleteLecture = async (req, res) => {
   course.curriculum.pull({ _id: lectureId });
   await course.save();
 
-  return res.status(200).json({
-    success: true,
-    data: course.curriculum,
-  });
+  return res.status(200).json({ success: true, data: course.curriculum });
 };
 
 const getUploadSignature = async (req, res) => {
@@ -262,6 +287,7 @@ const deleteStagedUpload = async (req, res) => {
 
 module.exports = {
   getInstructorCourses,
+  getInstructorCourse,
   createCourse,
   updateCourse,
   deleteCourse,
@@ -269,5 +295,5 @@ module.exports = {
   addLecture,
   deleteLecture,
   getUploadSignature,
-  deleteStagesUpload,
+  deleteStagedUpload,
 };

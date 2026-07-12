@@ -22,23 +22,27 @@ export default function AuthPage() {
   };
 
   const handleSignIn = async () => {
-    if (!signInData.userEmail || !signInData.password) {
-      toast.error("Fill in all fields");
-      return;
+  if (!signInData.userEmail || !signInData.password) {
+    toast.error("Fill in all fields");
+    return;
+  }
+  setLoading(true);
+  try {
+    const res = await login(signInData);
+    if (res.success) {
+      toast.success("Welcome back");
+      navigate(roleHomeMap[res.user.role]);
     }
-    setLoading(true);
-    try {
-      const res = await login(signInData);
-      if (res.success) {
-        toast.success("Welcome back");
-        navigate(roleHomeMap[res.user.role]);
-      }
-    } catch (err) {
+  } catch (err) {
+    if (err.response?.status === 403 && err.response?.data?.message?.includes("pending")) {
+      navigate("/instructor/not-approved");
+    } else {
       toast.error(err.response?.data?.message || "Sign in failed");
-    } finally {
-      setLoading(false);
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleSignUp = async () => {
     if (!signUpData.userName || !signUpData.userEmail || !signUpData.password) {

@@ -19,6 +19,7 @@ export const cancelOrderService = (data) => axiosInstance.post("/student/order/c
 
 // Instructor — courses
 export const getInstructorCoursesService = () => axiosInstance.get("/instructor/courses");
+export const getInstructorCourseService = (id) => axiosInstance.get(`/instructor/courses/${id}`);
 export const createCourseService = (data) => axiosInstance.post("/instructor/courses", data);
 export const updateCourseService = (id, data) => axiosInstance.put(`/instructor/courses/${id}`, data);
 export const deleteCourseService = (id) => axiosInstance.delete(`/instructor/courses/${id}`);

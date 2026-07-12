@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const {
   getInstructorCourses,
+  getInstructorCourse,
   createCourse,
   updateCourse,
   deleteCourse,
@@ -16,6 +17,7 @@ const { verifyInstructor } = require("../../middleware/role-middleware");
 
 router.get("/courses", verifyToken, verifyInstructor, getInstructorCourses);
 router.post("/courses", verifyToken, verifyInstructor, createCourse);
+router.get("/courses/:id", verifyToken, verifyInstructor, getInstructorCourse);
 router.put("/courses/:id", verifyToken, verifyInstructor, updateCourse);
 router.delete("/courses/:id", verifyToken, verifyInstructor, deleteCourse);
 router.put("/courses/:id/publish", verifyToken, verifyInstructor, togglePublish);
